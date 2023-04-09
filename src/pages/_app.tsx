@@ -2,8 +2,9 @@ import {
   ColorScheme,
   ColorSchemeProvider,
   MantineProvider,
+  rem,
 } from "@mantine/core";
-import { NotificationsProvider } from "@mantine/notifications";
+import { Notifications } from "@mantine/notifications";
 import type { AppProps } from "next/app";
 import "styles/tailwind.css";
 import "styles/global.css";
@@ -12,6 +13,7 @@ import App, { AppContext } from "next/app";
 import { useState } from "react";
 import { getCookie, setCookie } from "cookies-next";
 import { useRouter } from "next/router";
+import { trpc } from "~/utils/trpc";
 
 export const breakpoints = {
   //use tailwind breakpoints
@@ -23,7 +25,16 @@ export const breakpoints = {
   xxl: 1536,
 };
 
-export default function MyApp(props: AppProps & { colorScheme: ColorScheme }) {
+export const mantineBreakpoints = {
+  xs: rem(breakpoints.xs),
+  sm: rem(breakpoints.sm),
+  md: rem(breakpoints.md),
+  lg: rem(breakpoints.lg),
+  xl: rem(breakpoints.xl),
+  xxl: rem(breakpoints.xxl),
+};
+
+function MyApp(props: AppProps & { colorScheme: ColorScheme }) {
   const { Component, pageProps } = props;
   const router = useRouter();
   const [colorScheme, setColorScheme] = useState<ColorScheme>(
@@ -49,18 +60,16 @@ export default function MyApp(props: AppProps & { colorScheme: ColorScheme }) {
           fontFamily: "Poppins, sans-serif",
           headings: { fontFamily: "Poppins, sans-serif" },
           colorScheme,
-          breakpoints,
+          breakpoints: mantineBreakpoints,
         }}
         withGlobalStyles
         withNormalizeCSS
       >
-        <NotificationsProvider autoClose={3000}>
-          <Head>
-            <title>Blog</title>
-          </Head>
-
-          <Component {...pageProps} />
-        </NotificationsProvider>
+        <Notifications autoClose={3000} />
+        <Head>
+          <title>Blog</title>
+        </Head>
+        <Component {...pageProps} />
       </MantineProvider>
     </ColorSchemeProvider>
   );
@@ -74,3 +83,7 @@ MyApp.getInitialProps = async (appContext: AppContext) => {
     colorScheme: getCookie("color-scheme", appContext.ctx) || "dark",
   };
 };
+
+const trpcApp = trpc.withTRPC(MyApp);
+
+export default trpcApp;
